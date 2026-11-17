@@ -22,7 +22,7 @@ jobs:
           RELEASE_TARGET: 9c772cacee3d4449490a88740e0ff55d2dd1e5ae
         run: |
           set -eu
-          cat > "$RUNNER_TEMP/jobseekerplay-notes.md" <<\'NOTES\'
+          cat > "$RUNNER_TEMP/jobseekerplay-notes.md" <<'NOTES'
           취준생 키우기의 첫 공개 릴리스입니다.
 
           - 가구를 눌러 취업 준비를 하거나, 식사하고 쉬고 산책할 수 있어요.
