@@ -800,7 +800,7 @@
       choices.push({ title: "닫기", style: "secondary-button", run: closeOverlay });
     } else if (mode === "decorate") {
       title = "방 꾸미기";
-      body = "벽지와 러그를 골라요.";
+      body = "벽지, 이불, 러그 색을 골라요.";
       icon = "star";
       tone = "violet";
       choices = Object.entries(art.themes).map(([key, theme]) => ({
@@ -809,10 +809,13 @@
         swatch: theme.swatch,
         run: () => {
           roomTheme = key;
-          storeLocal(roomThemeKey, key);
+          const saved = storeLocal(roomThemeKey, key);
+          roomMessage = theme.label + " 테마로 방을 꾸몄어요.";
+          if (!saved) roomMessage += " 이 브라우저에서는 방 꾸미기 저장이 제한돼요.";
           closeOverlay();
-          paintScene();
-          byId("notice").textContent = theme.label + " 테마로 방을 꾸몄어요.";
+          if (outside) enterRoom();
+          else drawScene();
+          byId("notice").textContent = roomMessage;
         },
       }));
     } else if (mode === "major") {

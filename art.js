@@ -53,8 +53,21 @@
 
   const themes = {
     mint: { label: "민트 소다", swatch: "#a4dfc4" },
-    peach: { label: "복숭아 우유", swatch: "#f6a790", wall: [255, 210, 191], rug: [233, 145, 125] },
-    lavender: { label: "라벤더 사탕", swatch: "#cab3ed", wall: [237, 213, 242], rug: [179, 150, 220] },
+    peach: { label: "복숭아 우유", swatch: "#f6a790", wall: "#f4c39a", quilt: "#ed945c", rug: "#ec9f79" },
+    lavender: { label: "라벤더 사탕", swatch: "#cab3ed", wall: "#d6bbeb", quilt: "#a284d6", rug: "#8d81cf" },
+  };
+
+  // Trace the surfaces in the 768 × 512 room art so their texture and shadows remain visible.
+  const decorSurfaces = {
+    wall: `M 44 59 H 245 V 70 H 44 Z M 250 60 H 380 V 70 H 250 Z
+      M 462 60 H 562 V 69 H 462 Z M 596 60 H 738 V 72 H 596 Z`,
+    quilt: `M 93 212 Q 98 197 112 194 Q 121 201 135 198 Q 149 199 164 196
+      Q 182 194 197 193 Q 213 192 221 205 Q 231 220 228 247 L 226 255
+      Q 201 252 178 253 Q 170 253 167 257 L 162 261 Q 126 259 103 261
+      Q 93 257 90 247 Q 87 231 93 212 Z`,
+    rug: `M 260 242 C 262 227 287 222 315 223 C 342 221 363 231 365 244
+      C 366 258 342 268 313 268 C 285 268 261 257 260 242 Z
+      M 285 223 H 292 L 286 250 H 278 Z M 311 223 H 318 L 324 250 H 316 Z`,
   };
 
   const figureSizes = { male: 66, female: 66, family: 71, father: 73, asleep: 30 };
@@ -94,39 +107,19 @@
     return { ...spawn };
   }
 
-  function tint(context, bounds, target, referenceLight, includes) {
-    const [x, y, width, height] = bounds;
-    const sample = context.getImageData(x, y, width, height);
-    const pixels = sample.data;
-    for (let i = 0; i < pixels.length; i += 4) {
-      const [red, green, blue] = [pixels[i], pixels[i + 1], pixels[i + 2]];
-      if (!includes(red, green, blue)) continue;
-      const light = red * .2126 + green * .7152 + blue * .0722;
-      const offset = light - referenceLight;
-      for (let channel = 0; channel < 3; channel++) {
-        pixels[i + channel] = pixels[i + channel] * .12 + (target[channel] + offset) * .88;
-      }
-    }
-    context.putImageData(sample, x, y);
-  }
-
   function furnishedRoom(key) {
-    if (!isLoaded(home) || !themes[key]?.rug) return home;
+    const theme = themes[key];
+    if (!theme?.quilt) return home;
     if (!sceneCache.has(key)) {
       const canvas = document.createElement("canvas");
       canvas.width = dimensions.width;
       canvas.height = dimensions.height;
-      const context = canvas.getContext("2d", { willReadFrequently: true });
+      const context = canvas.getContext("2d");
       context.drawImage(home, 0, 0);
-      const theme = themes[key];
-      try {
-        const plaster = (r, g, b) => r >= 200 && g >= 165 && b >= 135 && r - g < 54 && g - b < 38 && r - b > 12;
-        tint(context, [38, 60, 351, 12], theme.wall, 205, plaster);
-        tint(context, [488, 60, 250, 12], theme.wall, 205, plaster);
-        tint(context, [258, 226, 107, 45], theme.rug, 156, (r, g, b) => g > r + 17 && b >= r - 8);
-      } catch (error) {
-        if (error.name !== "SecurityError") throw error;
-        // Some browsers restrict reading images when the game is opened from a local file.
+      context.globalCompositeOperation = "color";
+      for (const [surface, outline] of Object.entries(decorSurfaces)) {
+        context.fillStyle = theme[surface];
+        context.fill(new Path2D(outline), "evenodd");
       }
       sceneCache.set(key, canvas);
     }
