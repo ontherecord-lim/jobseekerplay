@@ -35,17 +35,3 @@
 | `scripts/compose-bgm.py` | 배경음악 음원 생성 |
 
 음원을 다시 만들려면 NumPy와 FFmpeg가 있는 상태에서 `python3 scripts/compose-bgm.py bgm.mp3`를 실행합니다.
-
-## 참고 자료
-
-공고의 분야, 업무와 준비 형태를 구성할 때 2026년 하반기 채용 자료를 참고했습니다. 게임 속 고용주, 전형, 점수와 일정은 가상입니다.
-
-- [잡코리아 2026년 11월 공채 달력](https://rds.jobkorea.co.kr/starter/calendar)
-- [잡코리아 회계·세무 신입 채용 공고](https://www.jobkorea.co.kr/Recruit/GI_Read/50305007)
-- [사람인 NHN Cloud AX 컨설팅 채용연계형 인턴 공고](https://www.saramin.co.kr/zf_user/jobs/view?rec_idx=54603423)
-- [공공기관 채용정보시스템 일반행정 공고](https://job.alio.go.kr/recruitview.do?idx=306449)
-- [잡코리아 한화에어로스페이스 신입 채용 목록](https://www.jobkorea.co.kr/Recruit/Salary/39635456)
-
-하루 단위로 준비와 생활 활동을 고르는 구성은 [마법학교 아스티넬의 아기 펫 키우기 기록](https://www.readonly.wiki/w/%EB%A7%88%EB%B2%95%ED%95%99%EA%B5%90%20%EC%95%84%EC%8A%A4%ED%8B%B0%EB%84%AC)을 참고했습니다.
-
-가구가 펼쳐진 방의 배치는 [파니팡 위니하우스 화면 기록](https://vidkidz.tistory.com/672)을 참고했습니다.
