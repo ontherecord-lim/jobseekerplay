@@ -52,15 +52,20 @@
   };
 
   const themes = {
-    mint: { label: "민트 소다", swatch: "#a4dfc4" },
+    mint: { label: "민트 소다", swatch: "#a4dfc4", wall: "#86c9ae", quilt: "#5cbea6", rug: "#6fc8ad" },
     peach: { label: "복숭아 우유", swatch: "#f6a790", wall: "#f4c39a", quilt: "#ed945c", rug: "#ec9f79" },
     lavender: { label: "라벤더 사탕", swatch: "#cab3ed", wall: "#d6bbeb", quilt: "#a284d6", rug: "#8d81cf" },
   };
 
   // Trace the surfaces in the 768 × 512 room art so their texture and shadows remain visible.
   const decorSurfaces = {
-    wall: `M 44 59 H 245 V 70 H 44 Z M 250 60 H 380 V 70 H 250 Z
-      M 462 60 H 562 V 69 H 462 Z M 596 60 H 738 V 72 H 596 Z`,
+    wall: `M 44 59 H 92 V 70 H 84 V 79 H 73 V 71 H 45 Z
+      M 100 57 H 246 V 70 H 220 V 76 H 213 V 70 H 100 Z
+      M 249 58 H 380 V 71 H 344 V 74 H 308 V 70 H 249 Z
+      M 464 59 H 577 V 69 H 472 V 106 H 466 Z
+      M 518 106 H 538 V 116 H 518 Z M 568 103 H 580 V 114 H 570 Z
+      M 592 58 H 653 V 70 H 635 V 75 H 606 V 68 H 592 Z
+      M 664 61 H 737 V 88 H 664 Z`,
     quilt: `M 93 212 Q 98 197 112 194 Q 121 201 135 198 Q 149 199 164 196
       Q 182 194 197 193 Q 213 192 221 205 Q 231 220 228 247 L 226 255
       Q 201 252 178 253 Q 170 253 167 257 L 162 261 Q 126 259 103 261
@@ -109,7 +114,7 @@
 
   function furnishedRoom(key) {
     const theme = themes[key];
-    if (!theme?.quilt) return home;
+    if (!theme) return home;
     if (!sceneCache.has(key)) {
       const canvas = document.createElement("canvas");
       canvas.width = dimensions.width;

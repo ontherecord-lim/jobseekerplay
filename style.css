@@ -181,6 +181,10 @@ main:focus { outline: none; }
 }
 .speech-bubble::before { border-width: 9px 7px 0; }
 .speech-bubble::after { margin-top: -2px; border-width: 8px 5px 0; border-top-color: #fffdf0; }
+.speech-gain {
+  display: block; width: max-content; max-width: 100%; margin: 4px auto 0; padding: 2px 7px;
+  border-radius: 999px; background: #ffe3e5; color: #8a3f57; font-size: 11px; font-weight: 850;
+}
 .speech-bubble[data-align="start"] { --tail: 16%; }
 .speech-bubble[data-align="end"] { --tail: 84%; }
 .setup-bubble { left: 45.83%; top: 60.2%; }

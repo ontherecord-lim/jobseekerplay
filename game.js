@@ -662,6 +662,12 @@
       case "answer": changed = answerInterview(state, command.index); break;
       case "event": changed = chooseEvent(state, command.index); break;
       case "family": changed = chooseFamilyMoment(state, command.index); break;
+      case "parent-talk": {
+        const family = clamp(state.relationships.family + 2, 0, 100);
+        changed = family !== state.relationships.family;
+        state.relationships.family = family;
+        break;
+      }
       case "shift": changed = takeShift(state, command.id, command.index); break;
       case "money": changed = manageMoney(state, command.operation); break;
       case "channel": changed = launchChannel(state); break;

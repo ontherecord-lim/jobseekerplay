@@ -362,9 +362,12 @@
     roomSpeech.hidden = true;
   }
 
-  function say(text, source = "player") {
+  function say(text, source = "player", relationshipGain = 0) {
     hideSpeech();
     roomSpeech.textContent = text;
+    if (relationshipGain > 0) {
+      roomSpeech.append(node("small", "speech-gain", "부모님 친밀도 +" + relationshipGain));
+    }
     speaker = source;
     positionSpeech(motion.matches ? 0 : performance.now());
     roomSpeech.hidden = false;
@@ -454,8 +457,12 @@
       if (id === "desk") openRoomMenu("actions");
       else if (Object.hasOwn(art.parents, id)) {
         const greeting = familyGreeting(id);
-        say(greeting, id);
-        byId("notice").textContent = art.targets[id].label + ". " + greeting;
+        const priorBond = state.relationships.family;
+        dispatch({ type: "parent-talk" });
+        const gained = state.relationships.family - priorBond;
+        say(greeting, id, gained);
+        byId("notice").textContent = art.targets[id].label + ". " + greeting +
+          (gained ? " 부모님 친밀도 +" + gained : "");
       } else openOverlay("decorate");
     });
   }
