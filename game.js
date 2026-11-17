@@ -5,6 +5,8 @@
   const story = typeof module !== "undefined" && module.exports ? require("./story.js") : root.JobStory;
   const LAST_DAY = 21;
   const DAILY_COST = 4;
+  const tutorialSteps = ["parent-talk", "rest", "letter", "finish-tutorial"];
+  const tutorialReward = 20;
   const VERSION = 3;
   const PREVIOUS_VERSION = 2;
   const genderLabels = { male: "남성", female: "여성" };
@@ -182,6 +184,8 @@
     return {
       skills: Object.fromEntries(Object.keys(catalog.skills).map((key) => [key, 0])),
       relationships: { family: 55, sibling: 55, friend: 64 },
+      tutorial: "skipped",
+      experience: 0,
       counseling: false,
       channel: null,
       hobby: null,
@@ -207,6 +211,7 @@
         major: normalizeMajor(profile.major),
       },
       ...lifeDefaults(),
+      tutorial: 0,
       seed,
       day: 1,
       stats: { energy: 82, morale: 72, resume: 26, interview: 18, balance: 62 },
@@ -252,6 +257,10 @@
 
       const resumed = { ...lifeDefaults(), ...save, version: VERSION };
       delete resumed.slots;
+      const completedTutorial = resumed.tutorial === "completed";
+      if (resumed.experience !== (completedTutorial ? tutorialReward : 0) ||
+          (!completedTutorial && resumed.tutorial !== "skipped" &&
+            !range(resumed.tutorial, 0, tutorialSteps.length - 1))) return null;
       const nickname = normalizeNickname(save.profile.nickname);
       if (save.profile.nickname && !nickname) return null;
       resumed.profile = { ...save.profile, nickname, major: normalizeMajor(save.profile.major) };
@@ -638,6 +647,12 @@
   }
 
   function update(previous, command) {
+    if (command.type === "start-tutorial") {
+      return previous.tutorial === "skipped" && !previous.outcome ? { ...previous, tutorial: 0 } : previous;
+    }
+    if (command.type === "skip-tutorial") {
+      return Number.isInteger(previous.tutorial) ? { ...previous, tutorial: "skipped" } : previous;
+    }
     if (command.type === "nickname") {
       const nickname = normalizeNickname(command.value);
       return !nickname || nickname === previous.profile.nickname ? previous :
@@ -668,17 +683,30 @@
         state.relationships.family = family;
         break;
       }
+      case "finish-tutorial": changed = state.tutorial === tutorialSteps.length - 1; break;
       case "shift": changed = takeShift(state, command.id, command.index); break;
       case "money": changed = manageMoney(state, command.operation); break;
       case "channel": changed = launchChannel(state); break;
       case "end": changed = endDay(state); break;
       default: return previous;
     }
-    return changed ? state : previous;
+    const activity = command.type === "act" ? command.id : command.type;
+    const advancesTutorial = tutorialSteps[state.tutorial] === activity &&
+      (changed || command.type === "parent-talk");
+    if (advancesTutorial) {
+      if (command.type === "finish-tutorial") {
+        state.tutorial = "completed";
+        state.experience += tutorialReward;
+        log(state, "good", "튜토리얼 완료 · 경험치 +" + tutorialReward);
+      } else {
+        state.tutorial += 1;
+      }
+    }
+    return changed || advancesTutorial ? state : previous;
   }
 
   const api = {
-    LAST_DAY, DAILY_COST, stats, actions, jobs, events, getJob, genderLabels, openings,
+    LAST_DAY, DAILY_COST, tutorialSteps, tutorialReward, stats, actions, jobs, events, getJob, genderLabels, openings,
     sectors: catalog.sectors, skills: catalog.skills, actionGroups: catalog.actionGroups,
     majorGroups: catalog.majorGroups, majors: catalog.majors, majorFit,
     getEvent, getFamilyMoment, relations, hobbies, sibling, lotto, money, workplaces, normalizeNickname,

@@ -8,12 +8,12 @@
   <title>취준생 키우기</title>
   <link rel="preload" as="image" href="assets/sunlit-home.webp">
   <link rel="preload" as="image" href="assets/characters.webp">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
   <script defer src="catalog.js?v=4"></script>
   <script defer src="story.js?v=4"></script>
-  <script defer src="game.js?v=6"></script>
+  <script defer src="game.js?v=7"></script>
   <script defer src="art.js?v=10"></script>
-  <script defer src="app.js?v=10"></script>
+  <script defer src="app.js?v=11"></script>
 </head>
 <body>
   <header class="top-bar">
@@ -85,6 +85,15 @@
               <span id="scene-location">우리 집</span>
               <span class="room-guide" id="room-guide">바닥은 이동 · 가구와 사람은 클릭</span>
             </div>
+            <section class="tutorial-guide" id="tutorial-guide" aria-label="튜토리얼" hidden>
+              <span class="tile-icon" data-tone="gold"><canvas data-icon="star" width="16" height="16" aria-hidden="true"></canvas></span>
+              <div aria-live="polite">
+                <p class="tutorial-step" id="tutorial-step"></p>
+                <h2 id="tutorial-title"></h2>
+                <p id="tutorial-hint"></p>
+              </div>
+              <button class="text-button tutorial-skip" id="tutorial-skip" type="button">건너뛰기</button>
+            </section>
             <div class="room-view" id="room-view">
               <canvas id="room" width="768" height="512" aria-hidden="true"></canvas>
               <p class="speech-bubble" id="room-speech" aria-hidden="true" hidden></p>
@@ -94,7 +103,7 @@
                 <canvas data-icon="house" width="16" height="16" aria-hidden="true"></canvas> 내 방으로
               </button>
             </div>
-            <div class="scene-message">
+            <div class="scene-message" id="scene-story">
               <span class="scene-message-icon tile-icon" data-tone="violet">
                 <canvas data-icon="chat" width="16" height="16" aria-hidden="true"></canvas>
               </span>
@@ -127,9 +136,15 @@
             </div>
             <div class="stat-grid" id="stat-grid" aria-label="능력치"></div>
             <div class="relationship-list" id="relationships" role="group" aria-label="관계"></div>
-            <div class="hud-cash" aria-label="생활비">
-              <canvas data-icon="wallet" width="16" height="16" aria-hidden="true"></canvas>
-              <span><strong id="hud-balance">62</strong>만원</span>
+            <div class="hud-pockets">
+              <div class="hud-cash" aria-label="생활비">
+                <canvas data-icon="wallet" width="16" height="16" aria-hidden="true"></canvas>
+                <span><strong id="hud-balance">62</strong>만원</span>
+              </div>
+              <div class="hud-experience">
+                <canvas data-icon="star" width="16" height="16" aria-hidden="true"></canvas>
+                <span>경험치 <strong id="hud-experience">0</strong></span>
+              </div>
             </div>
             <div class="day-footer">
               <button class="next-button" id="next-day" type="button">하루 마치기 <span aria-hidden="true">→</span></button>
@@ -171,6 +186,10 @@
       <button class="top-button dialog-close" id="room-menu-close" type="button" aria-label="메뉴 닫기" autofocus>×</button>
     </header>
     <div class="room-menu-content">
+      <div class="tutorial-menu-note" id="tutorial-menu-note" hidden>
+        <p id="tutorial-menu-hint"></p>
+        <button class="primary-button" id="tutorial-finish" type="button" hidden>튜토리얼 완료</button>
+      </div>
       <div data-panel="actions" hidden>
         <div class="action-filters" id="action-filters" role="group" aria-label="행동 종류"></div>
         <div class="action-grid" id="action-grid"></div>

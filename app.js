@@ -8,6 +8,28 @@
   const musicKey = "job-seeker-rpg-music";
   const roomThemeKey = "job-seeker-rpg-room-theme";
   const roomMenus = { actions: "오늘의 행동", jobs: "채용 공고", life: "내 일상", journal: "취준 일지" };
+  const tutorialLessons = {
+    "parent-talk": {
+      title: "부모님에게 인사하기",
+      hint: "마당의 엄마 또는 아빠를 눌러 말을 걸어봐요.",
+      target: '[data-furniture="family"], [data-furniture="father"]',
+    },
+    rest: {
+      title: "침대에서 쉬기",
+      hint: "왼쪽 침대를 눌러 체력과 멘탈을 회복해요.",
+      target: '[data-furniture="rest"]',
+    },
+    letter: {
+      title: "첫 자소서 쓰기",
+      hint: "책상을 누르고 ‘자소서 쓰기’를 골라 스펙을 올려요.",
+      target: '[data-furniture="desk"], [data-action="letter"]',
+    },
+    "finish-tutorial": {
+      title: "채용 공고 둘러보기",
+      hint: "아래 ‘채용 공고’를 열어 마감일과 우대 전공을 살펴봐요.",
+      target: '[data-dock="jobs"]',
+    },
+  };
   const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
   const byId = (id) => document.getElementById(id);
   const dayText = (day) => String(day).padStart(2, "0");
@@ -26,6 +48,8 @@
   const returnHome = byId("return-home");
   const roomReward = byId("room-reward");
   const roomSpeech = byId("room-speech");
+  const tutorialGuide = byId("tutorial-guide");
+  const tutorialFinish = byId("tutorial-finish");
   const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const options = byId("dialog-options");
   const closeButton = byId("dialog-close");
@@ -283,6 +307,7 @@
     if (!state || dialog.open) return;
     byId("room-menu-title").textContent = roomMenus[panel];
     for (const section of roomPanels) section.hidden = section.dataset.panel !== panel;
+    drawTutorialMenu(panel);
     if (!roomMenu.open) roomMenu.showModal();
     roomMenu.scrollTop = 0;
   }
@@ -454,8 +479,13 @@
     }
     roaming = true;
     moveCharacter(art.targets[id].position, () => {
-      if (id === "desk") openRoomMenu("actions");
-      else if (Object.hasOwn(art.parents, id)) {
+      if (id === "desk") {
+        if (currentTutorial() === "letter") {
+          actionGroup = "basics";
+          drawStatsAndActions();
+        }
+        openRoomMenu("actions");
+      } else if (Object.hasOwn(art.parents, id)) {
         const greeting = familyGreeting(id);
         const priorBond = state.relationships.family;
         dispatch({ type: "parent-talk" });
@@ -482,6 +512,47 @@
     button.append(node("span", "", target.label));
     button.addEventListener("click", () => onFurniture(id));
     roomPoints.append(button);
+  }
+
+  function currentTutorial() {
+    return state && !state.outcome ? game.tutorialSteps[state.tutorial] : undefined;
+  }
+
+  function drawTutorialMenu(panel) {
+    const step = currentTutorial();
+    const jobsLesson = step === "finish-tutorial" && panel === "jobs";
+    const letterLesson = step === "letter" && panel === "actions";
+    byId("tutorial-menu-note").hidden = !jobsLesson && !letterLesson;
+    tutorialFinish.hidden = !jobsLesson;
+    if (jobsLesson) {
+      byId("tutorial-menu-hint").textContent =
+        "관심 있는 공고에서 마감일과 내 전공 우대를 확인해요. 지원서를 내고 하루를 마치면 다음 날 서류 결과가 나와요.";
+      tutorialFinish.textContent = "튜토리얼 완료 · 경험치 +" + game.tutorialReward;
+    } else if (letterLesson) {
+      byId("tutorial-menu-hint").textContent = "‘자소서 쓰기’를 누르면 스펙이 올라가요.";
+    }
+  }
+
+  function drawTutorial() {
+    const step = currentTutorial();
+    tutorialGuide.hidden = !step;
+    tutorialGuide.parentElement.classList.toggle("tutorial-active", Boolean(step));
+    byId("scene-story").hidden = Boolean(step);
+
+    const lesson = tutorialLessons[step];
+    const target = lesson && outside && step !== "finish-tutorial" ? "#return-home" : lesson?.target;
+    for (const marked of document.querySelectorAll(".tutorial-target")) marked.classList.remove("tutorial-target");
+    if (lesson) {
+      const hint = target === "#return-home" ? "‘내 방으로’를 눌러 집으로 돌아가요." : lesson.hint;
+      const stepText = "튜토리얼 " + (state.tutorial + 1) + " / " + game.tutorialSteps.length;
+      if (byId("tutorial-step").textContent !== stepText) {
+        byId("tutorial-step").textContent = stepText;
+        byId("tutorial-title").textContent = lesson.title;
+      }
+      if (byId("tutorial-hint").textContent !== hint) byId("tutorial-hint").textContent = hint;
+      for (const control of document.querySelectorAll(target)) control.classList.add("tutorial-target");
+    }
+    if (roomMenu.open) drawTutorialMenu(roomMenu.querySelector("[data-panel]:not([hidden])")?.dataset.panel);
   }
 
   function drawScene() {
@@ -535,6 +606,7 @@
       description.textContent = "컨디션과 생활비를 보며 할 일을 골라요.";
     }
     if (roomMessage) description.textContent = roomMessage;
+    drawTutorial();
     paintScene();
   }
 
@@ -550,6 +622,7 @@
     const balance = state.stats.balance.toLocaleString("ko-KR");
     byId("balance").textContent = balance;
     byId("hud-balance").textContent = balance;
+    byId("hud-experience").textContent = state.experience;
 
     for (const { key, button } of actionFilters) button.setAttribute("aria-pressed", String(key === actionGroup));
     for (const { action, button, description } of actionViews) {
@@ -919,6 +992,15 @@
       icon = "paper";
       tone = "cyan";
       choices = [{ title: "확인", style: "primary-button", run: closeOverlay }];
+      if (state?.tutorial === "skipped" && !state.outcome) {
+        choices.unshift({
+          title: "튜토리얼 시작",
+          run: () => {
+            closeOverlay();
+            dispatch({ type: "start-tutorial" });
+          },
+        });
+      }
       if (state) choices.push({ title: "새 게임", style: "secondary-button", run: () => openOverlay("reset") });
     }
 
@@ -972,7 +1054,8 @@
     state = game.update(state, command);
     if (prior === state) return;
 
-    roomMessage = "";
+    const experienceGain = state.experience - prior.experience;
+    roomMessage = experienceGain > 0 ? "튜토리얼 완료 · 경험치 +" + experienceGain : "";
     if (command.type === "act") {
       roomPosition = art.positionFor(command.id);
       outside = command.id === "walk";
@@ -1067,7 +1150,6 @@
     render();
     activateMusic();
     playTone("next");
-    say(familyGreeting(), "family");
     byId("main").focus({ preventScroll: true });
   });
   byId("help-button").addEventListener("click", () => openOverlay("help"));
@@ -1113,6 +1195,11 @@
     });
   }
   byId("room-menu-close").addEventListener("click", closeRoomMenu);
+  byId("tutorial-skip").addEventListener("click", () => dispatch({ type: "skip-tutorial" }));
+  tutorialFinish.addEventListener("click", () => {
+    closeRoomMenu();
+    dispatch({ type: "finish-tutorial" });
+  });
   nextDay.addEventListener("click", () => dispatch({ type: "end" }));
   jobButton.addEventListener("click", () => {
     if (state.outcome) openOverlay("outcome");
